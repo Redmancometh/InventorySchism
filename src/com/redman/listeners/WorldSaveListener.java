@@ -15,90 +15,67 @@ import com.redman.persistence.DBProcessor;
 
 public class WorldSaveListener implements Listener
 {
-    private DBProcessor database;
-    private InventorySchism schism;
+	private DBProcessor database;
+	private InventorySchism schism;
 
-    public WorldSaveListener(DBProcessor database, InventorySchism schism)
-    {
-	this.database = database;
-	this.schism = schism;
-    }
-    @EventHandler
-    public void saveBlocks(ServerCommandEvent e) throws SQLException
-    {
-	if (!e.getCommand().equalsIgnoreCase("save-all") && !(e.getCommand().equalsIgnoreCase("stop")))
+	public WorldSaveListener(DBProcessor database, InventorySchism schism)
 	{
-	    return;
+		this.database = database;
+		this.schism = schism;
 	}
-	if (e.getCommand().equalsIgnoreCase("save-all"))
+	@EventHandler
+	public void saveBlocks(ServerCommandEvent e) throws SQLException
 	{
-	    schism.getPrimaryCache().saveAllInventories();
-	    saveBlocksAsync();
+		if (!e.getCommand().equalsIgnoreCase("save-all") && !(e.getCommand().equalsIgnoreCase("stop")))
+		{
+			return;
+		}
+		if (e.getCommand().equalsIgnoreCase("save-all"))
+		{
+			schism.getPrimaryCache().saveAllInventories();
+			saveBlocksAsync();
+		}
+		if (e.getCommand().equalsIgnoreCase("stop"))
+		{
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "save-all");
+			Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
+		}
 	}
-	if (e.getCommand().equalsIgnoreCase("stop"))
+	public void saveBlocksAsync()
 	{
-	    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "save-all");
-	    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "stop");
+		Bukkit.getLogger().log(Level.INFO, "Saving schism blocks");
+		new BukkitRunnable()
+		{
+			public void run()
+			{
+				try
+				{
+					database.savePlacedBlocks();
+				}
+				catch (SQLException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}.runTaskAsynchronously(schism);
+		Bukkit.getLogger().log(Level.INFO, "Saved.");
 	}
-    }
-    public void saveBlocksAsync()
-    {
-	Bukkit.getLogger().log(Level.INFO, "Saving schism blocks");
-	new BukkitRunnable()
+	@EventHandler
+	public void worldSave(WorldUnloadEvent e) throws SQLException
 	{
-	    public void run()
-	    {
+		saveBlocksSync();
+		schism.getPrimaryCache().saveAllInventories();
+	}
+	public void saveBlocksSync()
+	{
 		try
 		{
-		    database.savePlacedBlocks();
+			System.out.println("[WARNING]: Saving placed blocks synchronously due to server shutdown!");
+			database.savePlacedBlocks();
 		}
 		catch (SQLException e)
 		{
-		    e.printStackTrace();
+			e.printStackTrace();
 		}
-	    }
-	}.runTaskAsynchronously(schism);
-	new BukkitRunnable()
-	{
-	    public void run()
-	    {
-		try
-		{
-		    database.saveRemovedBlocks();
-		}
-		catch (SQLException e)
-		{
-		    e.printStackTrace();
-		}
-	    }
-	}.runTaskAsynchronously(schism);
-	Bukkit.getLogger().log(Level.INFO, "Saved.");
-    }
-    @EventHandler
-    public void worldSave(WorldUnloadEvent e) throws SQLException
-    {
-	saveBlocksSync();
-	schism.getPrimaryCache().saveAllInventories();
-    }
-    public void saveBlocksSync()
-    {
-	try
-	{
-	    System.out.println("[WARNING]: Saving placed blocks synchronously due to server shutdown!");
-	    database.savePlacedBlocks();
 	}
-	catch (SQLException e)
-	{
-	    e.printStackTrace();
-	}
-	try
-	{
-	    System.out.println("[WARNING]: Saving removed blocks synchronously due to server shutdown!");
-	    database.saveRemovedBlocks();
-	}
-	catch (SQLException e)
-	{
-	    e.printStackTrace();
-	}
-    }
 }
