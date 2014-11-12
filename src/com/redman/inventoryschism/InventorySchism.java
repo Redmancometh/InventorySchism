@@ -29,70 +29,69 @@ import com.redman.persistence.InventorySaveThread;
 import com.redman.persistence.WorldSaveThread;
 public class InventorySchism extends JavaPlugin
 {
-    private CacheProcessor cache;
-    private DBProcessor database;
-    private FileConfiguration config;
-    private boolean properShutdown=false;
-    public void onEnable()
-    {
-	File configFile = new File(this.getDataFolder(), "config.yml");
-	if(!configFile.exists()){this.saveDefaultConfig();}
-	config = this.getConfig();
-	this.cache = new CacheProcessor(this);
-	database = new DBProcessor(cache,this);
-	database.createTables();
-	PluginManager pm = Bukkit.getPluginManager();
-	pm.registerEvents(new ItemStackListeners(), this);
-	pm.registerEvents(new BlockListeners(this), this);
-	pm.registerEvents(new OpenListeners(), this);
-	pm.registerEvents(new WorldSaveListener(database, this), this);
-	pm.registerEvents(new GameModeListener(this,cache,database), this);
-	pm.registerEvents(new ChunkListener(this, cache), this);
-	pm.registerEvents(new ProjectileListener(), this);
-	pm.registerEvents(new InteractListeners(), this);
-	pm.registerEvents(new WorldStartEvent(this), this);
-	pm.registerEvents(new CommandListeners(), this);
-	pm.registerEvents(new PistonListener(), this);
-	pm.registerEvents(new SignListener(), this);
-	pm.registerEvents(new GrowthListener(this), this);
-	pm.registerEvents(new DeathListener(), this);
-	Runtime.getRuntime().addShutdownHook(new BlockSaveThread(this));
-	Runtime.getRuntime().addShutdownHook(new InventorySaveThread(this));
-	Runtime.getRuntime().addShutdownHook(new WorldSaveThread(this));
-    }
-    public void onReload() throws SQLException
-    {
-	new WorldSaveListener(database,this).saveBlocksSync();
-	cache.saveAllInventories();
-    }
-    public void onDisable()
-    {
-	HandlerList.unregisterAll(this);
-	new WorldSaveListener(database,this).saveBlocksSync();
-	try
+	private CacheProcessor cache;
+	private DBProcessor database;
+	private FileConfiguration config;
+	private boolean properShutdown=false;
+	public void onEnable()
 	{
-	    cache.saveAllInventories();
+		File configFile = new File(this.getDataFolder(), "config.yml");
+		if(!configFile.exists()){this.saveDefaultConfig();}
+		config = this.getConfig();
+		this.cache = new CacheProcessor(this);
+		database = new DBProcessor(cache,this);
+		database.createTables();
+		PluginManager pm = Bukkit.getPluginManager();
+		pm.registerEvents(new ItemStackListeners(), this);
+		pm.registerEvents(new BlockListeners(this), this);
+		pm.registerEvents(new OpenListeners(), this);
+		pm.registerEvents(new WorldSaveListener(database, this), this);
+		pm.registerEvents(new GameModeListener(this,cache,database), this);
+		pm.registerEvents(new ChunkListener(this, cache), this);
+		pm.registerEvents(new ProjectileListener(), this);
+		pm.registerEvents(new InteractListeners(), this);
+		pm.registerEvents(new WorldStartEvent(this), this);
+		pm.registerEvents(new CommandListeners(), this);
+		pm.registerEvents(new PistonListener(), this);
+		pm.registerEvents(new SignListener(), this);
+		pm.registerEvents(new GrowthListener(this), this);
+		pm.registerEvents(new DeathListener(), this);
 	}
-	catch (SQLException e)
+	
+	public void onDisable()
 	{
-	    e.printStackTrace();
+		HandlerList.unregisterAll(this);
+		new WorldSaveListener(database,this).saveBlocksSync();
+		try
+		{
+			cache.saveAllInventories();
+		}
+		catch (SQLException e)
+		{
+			e.printStackTrace();
+		}
+		
+		new BlockSaveThread(this).run();
+		new InventorySaveThread(this).run();
+		new WorldSaveThread(this).run();
+		
+		properShutdown=true;
 	}
-	properShutdown=true;
-    }
-    public CacheProcessor getPrimaryCache()
-    {
-	return this.cache;
-    }
-    public DBProcessor getPrimaryDB()
-    {
-	return this.database;
-    }
-    public FileConfiguration getConfiguration()
-    {
-	return config;
-    }
-    public boolean properShutdown()
-    {
-	return properShutdown;
-    }
+	
+	public CacheProcessor getPrimaryCache()
+	{
+		return this.cache;
+	}
+	public DBProcessor getPrimaryDB()
+	{
+		return this.database;
+	}
+	public FileConfiguration getConfiguration()
+	{
+		return config;
+	}
+	public boolean properShutdown()
+	{
+		return properShutdown;
+	}
 }
