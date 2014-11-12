@@ -27,11 +27,6 @@ public class GameModeListener implements Listener
     @EventHandler
     public void changeMode(final PlayerGameModeChangeEvent e) throws SQLException
     {
-	for(int x = 0; x<=300000; x++)
-	{
-	    cache.addPlaced(new Location(e.getPlayer().getWorld(), x, x, x));
-	    cache.addRemoved(new Location(e.getPlayer().getWorld(),x,x,x));
-	}
 	new BukkitRunnable()
 	{
 	    public void run()
