@@ -82,6 +82,7 @@ public class DBProcessor
 				// ignore
 			}
 			try {
+				preparedStatement.close();
 			} catch(Exception exception) {
 				// ignore
 			}
