@@ -49,7 +49,6 @@ public class DBProcessor
 		}
 		catch (SQLException e)
 		{
-			e.printStackTrace();
 		} finally {
 			try {
 				conn.close();
@@ -76,7 +75,6 @@ public class DBProcessor
 		}
 		catch (SQLException e)
 		{
-			e.printStackTrace();
 		} finally {
 			try {
 				conn.close();
@@ -84,7 +82,6 @@ public class DBProcessor
 				// ignore
 			}
 			try {
-				preparedStatement.close();
 			} catch(Exception exception) {
 				// ignore
 			}
