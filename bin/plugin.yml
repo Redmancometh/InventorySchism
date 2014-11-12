@@ -1,0 +1,4 @@
+name: InventorySchism
+main: com.redman.inventoryschism.InventorySchism
+version: 1.0
+load: STARTUP

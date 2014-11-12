@@ -1,0 +1,3 @@
+DBUser: root
+DBPassword: enter11284
+DBURL: jdbc:mysql://localhost/schism
